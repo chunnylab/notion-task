@@ -1,31 +1,47 @@
 # Notion Task: Daily Task Planner (Second Brain / PARA)
 
-ระบบวางแผนและแตกย่อยงานรายวัน (Daily Task Planning System) เชื่อมต่อ Notion โดยจัดวางไว้ในหมวด **Projects** ตามแนวคิด Second Brain (PARA Method: Projects, Areas, Resources, Archives) ของ Tiago Forte
+ระบบวางแผนและแตกย่อยงานรายวัน (Daily Task Planning System) เชื่อมต่อ Notion โดยจัดวางไว้ในหมวด **Projects** ตามแนวคิด Second Brain (PARA Method: Projects, Areas, Resources, Archives) ของ Tiago Forte ผสานกระบวนการทำงานระดับพรีเมียม Plan, Execute, Wrap-Up (PEW) จาก Ultimate Brain
 
-ออกแบบมาเพื่อให้ทุกคนสามารถวางแผนงานประจำวันได้อย่างรวดเร็ว แปลงเป้าหมายใหญ่เป็น Micro-tasks ที่ทำได้จริง พร้อมระบบสัมภาษณ์คัดกรองลำดับความสำคัญ
+ออกแบบมาเพื่อให้ทุกคนสามารถวางแผนงานประจำวันได้อย่างรวดเร็ว แปลงเป้าหมายใหญ่เป็น Micro-tasks ที่ทำได้จริง พร้อมระบบสัมภาษณ์คัดกรองลำดับความสำคัญ โหมดการทำงาน (Immersive vs Process) และการจับคู่ระดับพลังงาน
 
 ---
 
 ## จุดเด่น (Features)
 
 - **Second Brain PARA Alignment:** วางโครงสร้าง Daily Planner ไว้ในหมวด Projects เชื่อมโยงงานรายวันเข้ากับเป้าหมายที่แท้จริง
+- **2-Database Architecture:**
+  - `Daily Tasks`: จัดการงานรายชิ้น พร้อมสถานะ (To Do, Doing, Done, Dropped), Bucket (MIT, Secondary, Quick Win), โหมด (Immersive vs Process), และระดับพลังงาน
+  - `Daily Logs`: บันทึกหน้าประจำวัน (One page per day) มี Rollup คำนวณความคืบหน้า (%) อัตโนมัติจากงานที่ผูกไว้ พร้อมพื้นที่จด Wins และสรุปผล
+- **Interactive Multi-view Dashboard:**
+  - Board: แสดง Today tasks ตามสถานะ To Do, Doing, Done
+  - Board by Energy: แยกกลุ่มงานตามพลังงานที่ต้องใช้ (High, Medium, Low)
+  - Gallery: คลังประวัติวันย้อนหลัง พร้อมแถบความคืบหน้าและคะแนนประเมิน
+  - Calendar: ปฏิทินรายเดือนแสดงความต่อเนื่องของงาน
 - **AI-Powered Intake Interview:** สัมภาษณ์คัดกรอง 4 ประเด็นสำคัญ (Hard Deadlines, Deep Work, พลังงานและเวลา, Quick Wins) ก่อนเริ่มลงมือ
-- **Deep Planning Prompts:** มีชุด Prompt ให้พร้อมใช้งาน ทั้งแบบวางแผนเร็วประจำวัน และแบบคิดวิเคราะห์เชิงลึก (Deep Reasoning)
-- **Zero-Dependency CLI:** มีโปรแกรม Python ขนาดกะทัดรัดที่ใช้เฉพาะ Python Standard Library ใช้งานได้ทันทีโดยไม่ต้องติดตั้งไลบรารีภายนอก
-- **Notion Integration:** รองรับทั้งการบันทึกผ่าน Notion MCP บน AI Assistant และการซิงก์ผ่าน Notion API ตรง
+- **Mode Tagging:** แยกงานแบบ Immersive (ต้องมีสมาธิต่อเนื่อง ห้ามรบกวน) ออกจากงาน Process (งานย่อย/เอกสาร/ธุระ)
+- **Zero-Dependency CLI:** โปรแกรม Python ขนาดกะทัดรัดที่ใช้เฉพาะ Python Standard Library ใช้งานได้ทันทีโดยไม่ต้องติดตั้งแพ็กเกจภายนอก
+- **Notion Integration:** รองรับทั้งการบันทึกผ่าน Notion MCP บน AI Assistant และการซิงก์ผ่าน Notion API ตรงเข้าฐานข้อมูล
 - **Safe & Public-Ready:** ตั้งค่า `.gitignore` คลุมไฟล์ Credential, Token, `.env` และข้อมูลส่วนบุคคลอย่างรัดกุม
 
 ---
 
-## การจัดวางตามหลัก Second Brain (PARA)
+## สถาปัตยกรรมฐานข้อมูล (Database Architecture)
 
-ตามแนวคิดของ Tiago Forte:
-- **Projects:** ซีรีส์ของงานที่มีเป้าหมายและกรอบเวลาชัดเจน (Active)
-- **Areas:** ขอบเขตความรับผิดชอบระยะยาวที่ต้องดูแลต่อเนื่อง
-- **Resources:** หัวข้อหรือคลังความรู้ที่สนใจในอนาคต
-- **Archives:** รายการที่เสร็จสิ้นหรือไม่ใช้งานแล้ว
+ระบบประกอบด้วย 2 ฐานข้อมูลที่เชื่อมโยงกันแบบ Relation:
 
-ในระบบนี้ หน้า **Daily Task Planner** ถูกสร้างไว้ใต้หมวด **Projects** เพื่อทำหน้าที่เป็น Action Center สำหรับขับเคลื่อนงานที่มีกำหนดเวลาและเป้าหมายในแต่ละวัน
+```
+[ Daily Logs Database ]  <==== Two-way Relation ====>  [ Daily Tasks Database ]
+  - Day (Title)                                           - Task (Title)
+  - Date (Date)                                           - Status (To Do / Doing / Done / Dropped)
+  - Phase (Planned / Executing / Reviewed)                - Date (Date)
+  - Energy (High / Medium / Low)                          - Bucket (MIT / Secondary / Quick Win)
+  - Progress (Rollup % from Tasks)                        - Mode (Immersive / Process)
+  - Focus Hours (Number)                                  - Energy (High / Medium / Low)
+  - Rating (1-5 Stars)                                    - Area (Teaching / AWS / Lecture / Life / Admin)
+  - Wins (Text)                                           - Time Block (Text)
+                                                          - Est min (Number)
+                                                          - Day (Relation to Daily Logs)
+```
 
 ---
 
@@ -40,7 +56,7 @@
    - เมื่อมีงานซับซ้อน งานที่มีเงื่อนไขเกี่ยวพันหลายฝ่าย หรือวันที่ตารางแน่นมาก ให้สลับโมเดลเป็น **Claude Opus**
    - ใช้คำสั่งจากไฟล์ [`prompts/02_opus_deep_planner_prompt.md`](prompts/02_opus_deep_planner_prompt.md) เพื่อให้ Opus วิเคราะห์ Dependency, คำนวณ Buffer และจัด Energy Allocation อย่างละเอียด
 3. **ขั้นตอนบันทึกขึ้น Notion (Execution):**
-   - ให้ AI บันทึกตารางงานที่สรุปแล้วลงหน้า Notion ผ่าน Notion MCP หรือคัดลอกลงหน้ากระดาษโดยตรง
+   - ให้ AI บันทึกหน้าวันและงานทั้งหมดลง Notion ผ่าน Notion MCP หรือสั่งรันสคริปต์ CLI
 
 ---
 
@@ -63,9 +79,9 @@ notion-task/
 ├── notion_task/                  # Python Package (Standard Library)
 │   ├── __init__.py
 │   ├── cli.py                   # ตัวควบคุม Interactive CLI
-│   ├── formatter.py             # จัดรูปแบบ Markdown และ Notion Blocks
-│   ├── models.py                # โครงสร้างข้อมูล DailyPlan
-│   └── notion_client.py         # ไคลเอนต์เรียก Notion API
+│   ├── formatter.py             # จัดรูปแบบ Markdown และ Notion API Blocks/Payloads
+│   ├── models.py                # โครงสร้างข้อมูล TaskItem และ DailyPlan
+│   └── notion_client.py         # ไคลเอนต์เรียก Notion API (Zero dependencies)
 └── tests/
     └── test_formatter.py        # ชุดทดสอบ Unit test
 ```
@@ -77,8 +93,8 @@ notion-task/
 ### วิธีที่ 1: ใช้งานผ่าน AI Assistant (Prompt / Skill)
 1. เปิด AI Assistant ที่คุณใช้งาน (เช่น Antigravity, Claude, ChatGPT)
 2. คัดลอกเนื้อหาจาก [`prompts/01_daily_intake_prompt.md`](prompts/01_daily_intake_prompt.md) ไปวาง
-3. ตอบคำถาม 3-4 ข้อที่ AI สัมภาษณ์
-4. เมื่อได้แผนงาน ให้นำไปวางใน Notion หรือหากใช้ Notion MCP ให้สั่ง AI บันทึกลงหน้า `Daily Task Planner` ได้ทันที
+3. ตอบคำถาม 4 ข้อที่ AI สัมภาษณ์
+4. เมื่อได้แผนงาน ให้นำไปวางใน Notion หรือหากใช้ Notion MCP ให้สั่ง AI บันทึกลงหน้า `Daily Task Planner` หรือฐานข้อมูลที่เกี่ยวข้องได้ทันที
 
 ### วิธีที่ 2: ใช้งานผ่าน Terminal (CLI)
 
@@ -98,8 +114,9 @@ python3 plan.py --output my_plan.md
    ```bash
    cp .env.example .env
    ```
-2. ใส่ `NOTION_API_KEY` (จาก https://www.notion.so/my-integrations) และ `NOTION_DAILY_TASK_PAGE_ID`
-3. สั่งรันพร้อมส่งข้อมูลขึ้น Notion:
+2. ใส่ `NOTION_API_KEY` (จาก https://www.notion.so/my-integrations)
+3. ใส่ `NOTION_LOGS_DB_ID` และ `NOTION_TASKS_DB_ID`
+4. สั่งรันพร้อมส่งข้อมูลขึ้น Notion:
    ```bash
    python3 plan.py --sync
    ```
