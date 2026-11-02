@@ -44,7 +44,7 @@ class TestDailyPlanFormatter(unittest.TestCase):
         self.assertIn("Check db connection", md)
         self.assertIn("Update docs", md)
         self.assertIn("Pay bills", md)
-        self.assertIn("เป้าหมายหลัก:", md)
+        self.assertIn("เป้าหมายหลัก (Daily Goal):", md)
         self.assertIn("Cut-off Rule", md)
 
     def test_day_log_payload_structure(self):

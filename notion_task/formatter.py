@@ -2,66 +2,72 @@ from typing import Any, Dict, List
 from notion_task.models import DailyPlan, TaskItem
 
 
-def format_to_markdown(plan: DailyPlan) -> str:
-    """Format a DailyPlan into Notion-compatible Markdown matching the PEW template."""
+def format_single_page_markdown(plan: DailyPlan) -> str:
+    """Format a DailyPlan into Notion single-page layout with collapsible toggles."""
     date_str = plan.plan_date.isoformat()
     lines = [
-        f"## ⚡ Focus Plan: {plan.title} ({date_str})",
+        f"## แผนงานประจำวัน: {plan.title} ({date_str})",
         "",
     ]
 
-    if plan.goal:
-        lines.extend([
-            f"> **เป้าหมายหลัก:** {plan.goal}",
-            "",
-        ])
+    if plan.goal or plan.cutoff_rule:
+        lines.append("> **เป้าหมายหลัก (Daily Goal):** " + (plan.goal or "-"))
+        if plan.cutoff_rule:
+            lines.append("> **กฎการตัดทิ้ง (Cut-off Rule):** " + plan.cutoff_rule)
+        lines.append("")
 
-    lines.append("### 🌟 Top Priorities (MIT)")
+    lines.append("### งานสำคัญอันดับ 1–3 (Most Important Tasks - MIT)")
     if plan.mit_tasks:
-        for t in plan.mit_tasks:
+        for idx, t in enumerate(plan.mit_tasks, 1):
             time_part = f" [{t.time_block}]" if t.time_block else ""
-            energy_part = f" ({t.energy}, {t.mode})"
-            lines.append(f"- [ ] **{t.task}**{time_part}{energy_part}")
-            for sub in t.subtasks:
-                lines.append(f"    - [ ] {sub}")
+            mode_energy = f" (ระดับพลังงาน: {t.energy} | โหมด: {t.mode})"
+            lines.append(f"- [ ] **{idx}. {t.task}**{time_part}{mode_energy}")
+            if t.subtasks:
+                lines.append("    <toggle>")
+                lines.append("    <b>ขั้นตอนย่อย (Micro-tasks)</b>")
+                for sub in t.subtasks:
+                    lines.append(f"    - [ ] {sub}")
+                lines.append("    </toggle>")
     else:
         lines.append("- [ ] ")
 
     lines.append("")
-    lines.append("### 📋 Secondary Tasks")
+    lines.append("### งานรอง (Secondary Tasks)")
     if plan.secondary_tasks:
         for t in plan.secondary_tasks:
             time_part = f" [{t.time_block}]" if t.time_block else ""
             lines.append(f"- [ ] {t.task}{time_part} ({t.energy})")
-            for sub in t.subtasks:
-                lines.append(f"    - [ ] {sub}")
+            if t.subtasks:
+                lines.append("    <toggle>")
+                lines.append("    <b>ขั้นตอนย่อย</b>")
+                for sub in t.subtasks:
+                    lines.append(f"    - [ ] {sub}")
+                lines.append("    </toggle>")
     else:
         lines.append("- [ ] ")
 
     lines.append("")
-    lines.append("### ⚡ Quick Wins (< 15 นาที)")
+    lines.append("### งานสั้น (Quick Wins: น้อยกว่า 15 นาที)")
     if plan.quick_wins:
         for t in plan.quick_wins:
             lines.append(f"- [ ] {t.task} ({t.est_minutes} นาที)")
     else:
         lines.append("- [ ] ")
 
-    if plan.cutoff_rule:
-        lines.extend([
-            "",
-            "### ✂️ Cut-off Rule",
-            f"> {plan.cutoff_rule}",
-        ])
-
     if plan.notes:
         lines.extend([
             "",
-            "### 📝 Notes & Context",
+            "### บันทึกเพิ่มเติม (Notes & Context)",
             plan.notes,
         ])
 
     lines.append("")
     return "\n".join(lines)
+
+
+def format_to_markdown(plan: DailyPlan) -> str:
+    """Standard markdown formatter for terminal and text file output."""
+    return format_single_page_markdown(plan)
 
 
 def format_day_log_page_payload(plan: DailyPlan, database_id: str) -> Dict[str, Any]:
@@ -124,20 +130,6 @@ def format_day_log_page_payload(plan: DailyPlan, database_id: str) -> Dict[str, 
             "type": "toggle",
             "toggle": {
                 "rich_text": [{"type": "text", "text": {"content": "งานที่ค้าง: Roll over / Backlog / Drop"}}],
-                "children": [
-                    {
-                        "object": "block",
-                        "type": "bulleted_list_item",
-                        "bulleted_list_item": {"rich_text": [{"type": "text", "text": {"content": ""}}]},
-                    }
-                ],
-            },
-        },
-        {
-            "object": "block",
-            "type": "toggle",
-            "toggle": {
-                "rich_text": [{"type": "text", "text": {"content": "Top 1–2 ของวันพรุ่งนี้"}}],
                 "children": [
                     {
                         "object": "block",
