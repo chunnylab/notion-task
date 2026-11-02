@@ -24,7 +24,7 @@ def format_single_page_markdown(plan: DailyPlan) -> str:
             lines.append(f"- [ ] **{idx}. {t.task}**{time_part}{mode_energy}")
             if t.subtasks:
                 lines.append("    <toggle>")
-                lines.append("    <b>ขั้นตอนย่อย (Micro-tasks)</b>")
+                lines.append("    <b>Tasks</b>")
                 for sub in t.subtasks:
                     lines.append(f"    - [ ] {sub}")
                 lines.append("    </toggle>")
@@ -39,7 +39,7 @@ def format_single_page_markdown(plan: DailyPlan) -> str:
             lines.append(f"- [ ] {t.task}{time_part} ({t.energy})")
             if t.subtasks:
                 lines.append("    <toggle>")
-                lines.append("    <b>ขั้นตอนย่อย</b>")
+                lines.append("    <b>Tasks</b>")
                 for sub in t.subtasks:
                     lines.append(f"    - [ ] {sub}")
                 lines.append("    </toggle>")

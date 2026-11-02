@@ -49,7 +49,7 @@ def prompt_task_items(bucket_name: str, default_mode: str = "⚙️ Process", de
         area = area_map.get(area_in, "🗂️ Admin")
 
         subtasks: list[str] = []
-        sub_in = input("  ขั้นตอนย่อย (คั่นด้วยจุลภาค ',' หรือเว้นว่าง): ").strip()
+        sub_in = input("  Tasks ย่อย (คั่นด้วยจุลภาค ',' หรือเว้นว่าง): ").strip()
         if sub_in:
             subtasks = [s.strip() for s in sub_in.split(",") if s.strip()]
 
